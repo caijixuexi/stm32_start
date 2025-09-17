@@ -4,19 +4,19 @@
             "name": "stm32f4_boot",
             "includePath": [
                 "boot",
-                "component/crc",
-                "component/easylogger/inc",
-                "component/ringbuffer",
                 "platform/cmsis/core",
                 "platform/cmsis/device",
-                "platform/driver/inc"
+                "platform/driver/inc",
+                "boot/app/inc",
+                "boot/driver/led",
+                "platform/cmsis/device"
             ],
             "defines": [
                 "STM32F40_41xxx",
                 "USE_STDPERIPH_DRIVER",
                 "DEBUG"
             ],
-            "compilerPath": "${workspaceFolder}/tools/toolchain/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gcc",
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc",
             "intelliSenseMode": "linux-gcc-arm",
             "cStandard": "c99",
             "cppStandard": "c++11",
