@@ -7,6 +7,8 @@
 #include "stm32f4xx_rcc.h"
 #include "stm32f4xx_gpio.h"
 #include "stm32f4xx_usart.h"
+#include "dma.h"
+#include "ringbuffer8.h"
 typedef enum usart_number{
     USART_1 = 1,
     USART_2,
@@ -43,4 +45,5 @@ usart_t usart1 = {
 };
 void usart_Init(usart_t* usart);
 void usart_Transmit(USART_TypeDef* USARTx, uint8_t byte);
+uint8_t usart_Receive(USART_TypeDef* USARTx);
 #endif

@@ -9,7 +9,9 @@
                 "platform/driver/inc",
                 "boot/app/inc",
                 "boot/driver/led",
-                "platform/cmsis/device"
+                "platform/cmsis/device",
+                "boot/driver/DMA",
+                "third_lib/ringbuffer"
             ],
             "defines": [
                 "STM32F40_41xxx",

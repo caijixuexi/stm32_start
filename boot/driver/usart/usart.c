@@ -65,22 +65,30 @@ static uint16_t GPIO_AF_NUM(usart_number_t usart_number)
     }
 }
 // 修正函数返回类型
-static USART_TypeDef* USART_addr(usart_number_t usart_number)
+static USART_TypeDef *USART_addr(usart_number_t usart_number)
 {
-    switch(usart_number)
+    switch (usart_number)
     {
-        case USART_1: return USART1;
-        case USART_2: return USART2;
-        case USART_3: return USART3;
-        case UART_4: return UART4;
-        case UART_5: return UART5;
-        case USART_6: return USART6;
-        case UART_7: return UART7;
-        case UART_8: return UART8;
-        default: return USART1;
+    case USART_1:
+        return USART1;
+    case USART_2:
+        return USART2;
+    case USART_3:
+        return USART3;
+    case UART_4:
+        return UART4;
+    case UART_5:
+        return UART5;
+    case USART_6:
+        return USART6;
+    case UART_7:
+        return UART7;
+    case UART_8:
+        return UART8;
+    default:
+        return USART1;
     }
 }
-
 
 void usart_Init(usart_t *usart)
 {
@@ -153,7 +161,7 @@ void usart_Init(usart_t *usart)
     /* Configure USART Tx and Rx as alternate function */
     GPIO_InitStruct.GPIO_Pin = usart->gpio_pin_tx | usart->gpio_pin_rx;
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
     GPIO_Init(usart->gpiox, &GPIO_InitStruct);
@@ -167,10 +175,63 @@ void usart_Init(usart_t *usart)
     USART_InitStruct.USART_WordLength = usart->data_bits;
     USART_InitStruct.USART_StopBits = usart->stop_bits;
     USART_InitStruct.USART_Parity = usart->parity;
-    USART_InitStruct.USART_Mode = usart->mode;  
+    USART_InitStruct.USART_Mode = usart->mode;
     USART_InitStruct.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     USART_Init(USART_addr(usart->usart_number), &USART_InitStruct);
 
     /* Enable USART */
     USART_Cmd(USART_addr(usart->usart_number), ENABLE);
+}
+
+void usart_Transmit(USART_TypeDef *USARTx, uint8_t byte)
+{
+    while (USART_GetFlagStatus(USARTx, USART_FLAG_TXE) == RESET)
+        ;
+    USART_SendData(USARTx, byte);
+}
+uint8_t usart_Receive(USART_TypeDef *USARTx)
+{
+    while (USART_GetFlagStatus(USARTx, USART_FLAG_RXNE) == RESET)
+        ;
+    return USART_ReceiveData(USARTx);
+}
+void usart1_nvic_init(void)
+{
+    NVIC_InitTypeDef NVIC_InitStruct;
+    memset(&NVIC_InitStruct, 0, sizeof(NVIC_InitTypeDef));
+    NVIC_InitStruct.NVIC_IRQChannel = USART1_IRQn; // 串口1中断通道
+    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 2;
+    NVIC_InitStruct.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStruct);
+    NVIC_InitStruct.NVIC_IRQChannel = DMA2_Stream5_IRQn; // 嵌套通道为DMA2_Stream5_IRQn
+
+    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 2; // 抢占优先级为 2
+
+    NVIC_InitStruct.NVIC_IRQChannelSubPriority = 2; // 响应优先级为 2
+
+    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE; // 通道中断使能
+
+    NVIC_Init(&NVIC_InitStruct);
+
+    NVIC_InitStruct.NVIC_IRQChannel = DMA2_Stream7_IRQn; // 串口1发送中断通道
+
+    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 2; // 抢占优先级2
+
+    NVIC_InitStruct.NVIC_IRQChannelSubPriority = 3; // 子优先级3
+
+    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE; // IRQ通道使能
+
+    NVIC_Init(&NVIC_InitStruct);
+
+    USART_ITConfig(USART1, USART_IT_IDLE, ENABLE);
+
+    // 开启串口空闲中断
+
+    USART_DMACmd(USART1, USART_DMAReq_Rx, ENABLE);
+
+    // 开启串口DMA接收
+
+    USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
+    DMA2_USART1_Rx_Init(rx_buffer, RX_BUFFER_SIZE);
 }
